@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  login        String   @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  roleId       Int
+  roleLanguage String?
+  role         Role?    @relation(fields: [roleId, roleLanguage], references: [id, language])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  animals      Animal[]
+  Notification Notification[]
+}
+
+model Animal {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  speciesId   Int
+  name        String
+  weight      Int?
+  gender      String
+  dateOfBirth DateTime?
+
+  user          User           @relation(fields: [userId], references: [id])
+  species       AnimalSpecies? @relation(fields: [speciesId], references: [id])
+  metrics       Metric[]
+  devices       Device[]
+  notifications Notification[]
+}
+
+model AnimalSpecies {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  description        String?
+  minHeartbeat       Int
+  maxHeartbeat       Int
+  minRespirationRate Int
+  maxRespirationRate Int
+  minTemperature     Int
+  maxTemperature     Int
+
+  animals Animal[]
+}
+
+model Metric {
+  id              Int      @id @default(autoincrement())
+  animalId        Int
+  heartbeat       Int?
+  respirationRate Int?
+  temperature     Int?
+  timestamp       DateTime @default(now())
+
+  animal Animal @relation(fields: [animalId], references: [id])
+}
+
+model Device {
+  id           Int      @id @default(autoincrement())
+  animalId     Int
+  isActive     Boolean  @default(true)
+  sharedSecret String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  animal Animal @relation(fields: [animalId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  animalId  Int
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  animal Animal @relation(fields: [animalId], references: [id])
+}
+
+model Role {
+  id       Int
+  language String
+  name     String @db.VarChar(100)
+  users    User[]
+
+  @@id([id, language])
+}
