@@ -35,7 +35,7 @@ jobs:
         run: npm test
 
       - name: lint
-        run: npm lint
+        run: npm run lint
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
