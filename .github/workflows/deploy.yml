@@ -15,7 +15,7 @@ on:
         required: true
 
 jobs:
-  docker:
+  push_images:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,3 +39,27 @@ jobs:
           tags: |
             ${{ vars.IMAGE_NAME }}:latest
             ${{ vars.IMAGE_NAME }}:${{ inputs.version }}
+
+  deploy_container:
+    runs-on: ubuntu-latest
+    needs: push_images
+
+    steps:
+      - name: run newly created image using ssh
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_SSH_HOST }}
+          username: ${{ secrets.SERVER_SSH_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            docker pull ${{ vars.IMAGE_NAME }}:latest
+            cd ${{ vars.SERVER_APP_DIR }}
+            docker run -d -p ${{ secrets.SERVER_PORT }}:${{ secrets.SERVER_PORT }} \
+              -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+              -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+              -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+              ${{ vars.IMAGE_NAME }}:latest
+            docker image prune -a -f

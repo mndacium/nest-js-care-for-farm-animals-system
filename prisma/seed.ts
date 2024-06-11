@@ -7,15 +7,28 @@ export const roles = {
   admin: { id: 2, name: 'Admin' },
 };
 
-const seedRoles = async (prisma: PrismaClient): Promise<void> => {
-  await prisma.role.createMany({
-    data: [
-      { id: 1, language: 'eng', name: 'User' },
-      { id: 1, language: 'ukr', name: 'Користувач' },
-      { id: 2, language: 'eng', name: 'Admin' },
-      { id: 2, language: 'ukr', name: 'Адміністратор' },
-    ],
-  });
+const seedRoles = async (prisma: PrismaClient) => {
+  const roles = [
+    { id: 1, language: 'eng', name: 'User' },
+    { id: 1, language: 'ukr', name: 'Користувач' },
+    { id: 2, language: 'eng', name: 'Admin' },
+    { id: 2, language: 'ukr', name: 'Адміністратор' },
+  ];
+
+  return prisma.$transaction(
+    roles.map((role) =>
+      prisma.role.upsert({
+        where: {
+          id_language: {
+            id: role.id,
+            language: role.language,
+          },
+        },
+        update: {},
+        create: { ...role },
+      }),
+    ),
+  );
 };
 
 const main = async () => {
