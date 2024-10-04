@@ -10,6 +10,7 @@ import { NotificationModule } from './notifications';
 import { MetricModule } from './metrics';
 import { AnalitycsModule } from './analitycs';
 import { DeviceModule } from './devices';
+import { FilesModule } from './files';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
@@ -33,6 +34,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     AnimalSpeciesModule,
     AuthModule,
     DeviceModule,
+    FilesModule,
     MetricModule,
     NotificationModule,
     UserModule,

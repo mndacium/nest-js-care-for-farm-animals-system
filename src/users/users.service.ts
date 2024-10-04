@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma';
 import { UserDto } from './dtos';
+import { FilesService } from 'src/files';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly filesService: FilesService,
+  ) {}
 
   public async getUser({
     login,
@@ -41,6 +45,8 @@ export class UserService {
       throw new NotFoundException('There is no user with such login');
     }
 
+    const avatar = await this.filesService.download(`${user.id}-avatar.png`);
+
     return {
       id: user.id,
       login: user.login,
@@ -50,6 +56,7 @@ export class UserService {
         id: usersRole.id,
         name: usersRole.name,
       },
+      avatar,
     };
   }
 
